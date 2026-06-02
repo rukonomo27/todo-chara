@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd /home/user/todo-chara && CURRENT=$(git branch --show-current) && git diff --name-only origin/main...\"$CURRENT\" | grep -q 'index.html' && git fetch origin main 2>/dev/null && git checkout main && git merge \"$CURRENT\" --ff-only && git push origin main && git checkout \"$CURRENT\" && echo '{\"systemMessage\": \"index.html の変更を main にデプロイしました\"}' || (git checkout \"$CURRENT\" 2>/dev/null; true)"
+          }
+        ]
+      }
+    ]
+  }
+}
