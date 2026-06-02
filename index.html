@@ -208,7 +208,7 @@
     }
 
     .form-row input[type="text"],
-    .form-row input[type="datetime-local"] {
+    .form-row input[type="number"] {
       width: 100%;
       padding: 10px 12px;
       border: 2px solid #e2e8f0;
@@ -410,7 +410,7 @@
       <h2>タスクを追加</h2>
       <div class="form-row">
         <input type="text" id="task-title" placeholder="タスクのタイトル" maxlength="60">
-        <input type="datetime-local" id="task-deadline">
+        <input type="number" id="task-days" min="0" step="0.5" placeholder="締め切りまでの日数（例: 1, 0.5）" value="1">
         <button class="btn-add" onclick="addTask()">追加 ＋</button>
       </div>
     </div>
@@ -548,17 +548,17 @@
   // --- TASK OPERATIONS ---
 
   function addTask() {
-    const titleEl    = document.getElementById('task-title');
-    const deadlineEl = document.getElementById('task-deadline');
-    const title    = titleEl.value.trim();
-    const deadline = deadlineEl.value;
+    const titleEl = document.getElementById('task-title');
+    const daysEl  = document.getElementById('task-days');
+    const title = titleEl.value.trim();
+    const days  = parseFloat(daysEl.value);
 
     let valid = true;
     if (!title) { shake(titleEl); valid = false; }
-    if (!deadline) { shake(deadlineEl); valid = false; }
+    if (isNaN(days) || days < 0) { shake(daysEl); valid = false; }
     if (!valid) return;
 
-    const deadlineMs = new Date(deadline).getTime();
+    const deadlineMs = Date.now() + days * 86400000;
 
     const state = loadState();
     state.tasks.push({
@@ -572,7 +572,7 @@
     saveState(state);
 
     titleEl.value = '';
-    deadlineEl.value = getDefaultDeadline();
+    daysEl.value  = '1';
     updateUI();
   }
 
@@ -643,10 +643,9 @@
     const d = Math.floor(diff / 86400000);
     const h = Math.floor(diff / 3600000);
     const m = Math.floor((diff % 3600000) / 60000);
-    if (d >= 2)  return d + '日後';
-    if (d === 1) return '明日まで';
-    if (h >= 1)  return h + '時間後';
-    return m + '分後';
+    if (d >= 1) return '残' + d + '日';
+    if (h >= 1) return '残' + h + '時間';
+    return '残' + m + '分';
   }
 
   function renderCharacter(mood) {
@@ -737,13 +736,7 @@
               .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
   }
 
-  function getDefaultDeadline() {
-    const d = new Date(Date.now() + 86400000 + 9 * 3600000);
-    return d.toISOString().slice(0, 16);
-  }
-
   // --- INIT ---
-  document.getElementById('task-deadline').value = getDefaultDeadline();
   setInterval(updateUI, 60000);
   updateUI();
 </script>
