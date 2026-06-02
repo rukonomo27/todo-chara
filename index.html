@@ -430,10 +430,54 @@
     cat:    IMG_BASE + '/cat/5.png'
   };
   const MOOD_MESSAGES = {
-    happy:  'タスクは完璧！元気いっぱいだよ ✨',
-    normal: 'もうすぐ締め切りが来るよ、急いで！ ⏰',
-    sad:    '期限切れのタスクがあって悲しいな... 😢',
-    crying: 'タスクがたくさん溢れてるよ！助けて！ 😭'
+    happy: [
+      'タスクは完璧！元気いっぱいだよ ✨',
+      'やったー！全部終わってるね！ 🎉',
+      'すごい！タスクゼロだよ！ 🌟',
+      'さすが！完璧な管理者だね 👑',
+      'タスクなし！今日は遊べるね 🎮',
+      'ぴかぴか！何もないよ〜 ✨',
+      'えらい！全部片付いてるよ 🙌',
+      'タスクが消えた！魔法みたい ✨',
+      'フリータイム満喫して！ 🌈',
+      'このまま続けてね！応援してるよ 💪',
+    ],
+    normal: [
+      'もうすぐ締め切りが来るよ、急いで！ ⏰',
+      '締め切りが近いよ！がんばって！ 🔥',
+      '急いで！間に合わなくなるよ！ 💨',
+      'あと少し！ラストスパートだ！ 🏃',
+      'ギリギリだよ、早くやって！ ⚡',
+      '時間がないよ…集中して！ 😤',
+      'もうすぐタイムアップ！ ⏳',
+      '締め切り迫ってる！頑張れ！ 🎯',
+      'ねえ、早くしないと間に合わないよ！ 😰',
+      'もう少しで終わるよ！諦めないで！ 💫',
+    ],
+    sad: [
+      '期限切れのタスクがあって悲しいな... 😢',
+      '期限が過ぎちゃったよ…なんで… 😔',
+      'タスクが溢れてる…助けて… 😿',
+      '期限切れだよ、早く終わらせて 😞',
+      'ちゃんとやってよ〜泣きそう 😭',
+      '約束守ってよね…悲しいよ 💔',
+      'やってくれると思ってたのに… 😿',
+      '締め切り過ぎてるよ…元気ないよ 😔',
+      'どうして忘れちゃうの… 😢',
+      'もっとちゃんとしてほしいな… 😥',
+    ],
+    crying: [
+      'タスクがたくさん溢れてるよ！助けて！ 😭',
+      'もう無理…タスクだらけ… 😭',
+      'ぐすん…全然終わらない… 💦',
+      'どうしてこんなに溜まったの！？ 😩',
+      'やだやだ！こんなにあるの無理！ 😭',
+      '泣いちゃう…助けてよ〜 💧',
+      'タスクの山が崩れてきたよ！ 🌊',
+      'ぼく壊れちゃいそう…はよ終わらせて 😵',
+      'もう限界！なんとかして！ 🆘',
+      'こんなに溜めたらだめだよ〜！ 😤',
+    ],
   };
 
   const TAP_COMMENTS = [
@@ -476,7 +520,8 @@
     clearTimeout(tapCharacter._timer);
     tapCharacter._timer = setTimeout(() => {
       const mood = calcMood(loadState().tasks);
-      msgEl.textContent = MOOD_MESSAGES[mood];
+      const msgs = MOOD_MESSAGES[mood];
+      msgEl.textContent = msgs[Math.floor(Math.random() * msgs.length)];
     }, 3000);
   }
 
@@ -611,7 +656,8 @@
 
     area.className = 'character-area mood-' + mood;
     img.className  = 'char-' + mood;
-    msgEl.textContent = MOOD_MESSAGES[mood];
+    const msgs = MOOD_MESSAGES[mood];
+    msgEl.textContent = msgs[Math.floor(Math.random() * msgs.length)];
   }
 
   function renderTaskList(tasks) {
