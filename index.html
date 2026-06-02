@@ -166,6 +166,16 @@
       100% { background-position: 0 60px, 10px 70px; }
     }
 
+    @keyframes tap-bounce {
+      0%   { transform: translateY(0); }
+      30%  { transform: translateY(-18px); }
+      60%  { transform: translateY(-8px); }
+      80%  { transform: translateY(-14px); }
+      100% { transform: translateY(0); }
+    }
+
+    #char-img.tapping { animation: tap-bounce 0.5s ease !important; }
+
     @keyframes shake {
       0%, 100% { transform: translateX(0); }
       20%       { transform: translateX(-6px); }
@@ -389,7 +399,9 @@
     <div class="character-area mood-happy" id="char-area">
       <img id="char-img" class="char-happy"
         src="https://raw.githubusercontent.com/rukonomo27/chariiku/main/images/egg.png"
-        alt="キャラクター">
+        alt="キャラクター"
+        onclick="tapCharacter()"
+        style="cursor:pointer">
       <div class="mood-message" id="mood-msg">タスクを確認中...</div>
     </div>
 
@@ -423,6 +435,50 @@
     sad:    '期限切れのタスクがあって悲しいな... 😢',
     crying: 'タスクがたくさん溢れてるよ！助けて！ 😭'
   };
+
+  const TAP_COMMENTS = [
+    'なでなで、ありがとう！ 😊',
+    'くすぐったいよ〜！ 🤣',
+    'もっとやって！ 🎵',
+    'えへへ、うれしいな ✨',
+    'タスクもよろしくね！ 📋',
+    'いっしょにがんばろう！ 💪',
+    'ぴょーん！ 🐸',
+    'わーい！ 🎉',
+    'タップありがとう！ 🥰',
+    'その調子でタスクも終わらせてね 😏',
+    'ちょっと、くすぐったいって！ 😂',
+    'もふもふだよ〜 🐾',
+    'やめてよ〜…でも続けて 🫣',
+    'ぼくのことが好きなの？ 💕',
+    'タスク、増えてない…？ 👀',
+    'ずっとここにいるよ 🌟',
+    'いっぱいタップしてくれてうれしい！ 😄',
+    'ふわふわ気持ちいい〜 ☁️',
+    '一緒にタスクやっつけよう！ ⚔️',
+    'きゅーん 💖',
+  ];
+
+  let tapCommentIndex = 0;
+
+  function tapCharacter() {
+    const img   = document.getElementById('char-img');
+    const msgEl = document.getElementById('mood-msg');
+
+    img.classList.remove('tapping');
+    void img.offsetWidth;
+    img.classList.add('tapping');
+    img.addEventListener('animationend', () => img.classList.remove('tapping'), { once: true });
+
+    msgEl.textContent = TAP_COMMENTS[tapCommentIndex % TAP_COMMENTS.length];
+    tapCommentIndex++;
+
+    clearTimeout(tapCharacter._timer);
+    tapCharacter._timer = setTimeout(() => {
+      const mood = calcMood(loadState().tasks);
+      msgEl.textContent = MOOD_MESSAGES[mood];
+    }, 3000);
+  }
 
   // --- DATA ---
 
