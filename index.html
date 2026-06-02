@@ -513,7 +513,7 @@
     if (!deadline) { shake(deadlineEl); valid = false; }
     if (!valid) return;
 
-    const deadlineMs = new Date(deadline).getTime();
+    const deadlineMs = new Date(deadline).getTime() - 9 * 3600000;
     if (deadlineMs < Date.now()) {
       if (!confirm('この締め切りはすでに過去の日時です。本当に追加しますか？')) return;
     }
@@ -695,7 +695,7 @@
   }
 
   function getDefaultDeadline() {
-    const d = new Date(Date.now() + 30000);
+    const d = new Date(Date.now() + 30000 + 9 * 3600000);
     return d.toISOString().slice(0, 16);
   }
 
