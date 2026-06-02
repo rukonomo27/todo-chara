@@ -514,9 +514,6 @@
     if (!valid) return;
 
     const deadlineMs = new Date(deadline).getTime();
-    if (deadlineMs < Date.now()) {
-      if (!confirm('この締め切りはすでに過去の日時です。本当に追加しますか？')) return;
-    }
 
     const state = loadState();
     state.tasks.push({
