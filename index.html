@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TODOチャラ</title>
+  <style>
+    :root {
+      --primary: #4CAF50;
+      --primary-dk: #43a047;
+      --danger: #ef4444;
+      --warn: #f59e0b;
+      --bg: #f0f4f8;
+      --card: #ffffff;
+      --text: #2d3748;
+      --muted: #718096;
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    .app-container {
+      max-width: 420px;
+      margin: 0 auto;
+      padding-bottom: 40px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--primary-dk);
+      padding: 20px 0 12px;
+      letter-spacing: 0.05em;
+    }
+
+    /* ===== 選択画面 ===== */
+    #selection-screen {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 28px 20px;
+      text-align: center;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    }
+
+    #selection-screen p {
+      font-size: 1rem;
+      color: var(--muted);
+      margin-bottom: 24px;
+    }
+
+    .select-container {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+    }
+
+    .char-choice {
+      cursor: pointer;
+      border: 3px solid transparent;
+      border-radius: 12px;
+      padding: 12px;
+      transition: all 0.2s;
+      background: var(--bg);
+      width: 140px;
+    }
+
+    .char-choice:hover {
+      border-color: var(--primary);
+      background: #e8f5e9;
+      transform: translateY(-4px);
+    }
+
+    .char-choice img {
+      width: 90px;
+      height: 90px;
+      object-fit: contain;
+      display: block;
+      margin: 0 auto 8px;
+    }
+
+    .char-choice .char-name {
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--text);
+    }
+
+    /* ===== キャラクターエリア ===== */
+    .character-area {
+      border-radius: var(--radius);
+      padding: 24px 16px 16px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 16px;
+      transition: background 0.6s;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    }
+
+    .mood-happy  { background: linear-gradient(135deg, #bbf7d0, #d1fae5); }
+    .mood-normal { background: linear-gradient(135deg, #fef9c3, #fef3c7); }
+    .mood-sad    { background: linear-gradient(135deg, #e2e8f0, #cbd5e1); }
+    .mood-crying { background: linear-gradient(135deg, #bfdbfe, #dbeafe); }
+
+    .character-area.mood-crying::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-image:
+        radial-gradient(circle, rgba(100,160,255,0.6) 1px, transparent 1px),
+        radial-gradient(circle, rgba(100,160,255,0.4) 1px, transparent 1px);
+      background-size: 20px 20px, 35px 35px;
+      background-position: 0 0, 10px 10px;
+      animation: rainFall 1.2s linear infinite;
+      pointer-events: none;
+    }
+
+    #char-img {
+      width: 120px;
+      height: 120px;
+      object-fit: contain;
+      display: block;
+      margin: 0 auto 12px;
+      transition: filter 0.6s;
+    }
+
+    #char-img.char-happy  { filter: none; animation: bounce 1.2s ease-in-out infinite; }
+    #char-img.char-normal { filter: none; animation: none; }
+    #char-img.char-sad    { filter: grayscale(60%) brightness(0.9); animation: droop 2.5s ease-in-out infinite; }
+    #char-img.char-crying { filter: grayscale(90%) brightness(0.8) saturate(0.3); animation: heavyDroop 1.8s ease-in-out infinite; }
+
+    .mood-message {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #4a5568;
+    }
+
+    /* ===== アニメーション ===== */
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0) scale(1); }
+      25%       { transform: translateY(-12px) scale(1.05); }
+      75%       { transform: translateY(-6px) scale(1.02); }
+    }
+
+    @keyframes droop {
+      0%, 100% { transform: rotate(0deg) translateY(0); }
+      50%       { transform: rotate(-3deg) translateY(4px); }
+    }
+
+    @keyframes heavyDroop {
+      0%, 100% { transform: rotate(0deg) translateY(0); }
+      50%       { transform: rotate(-6deg) translateY(8px); }
+    }
+
+    @keyframes rainFall {
+      0%   { background-position: 0 -20px, 10px -10px; }
+      100% { background-position: 0 60px, 10px 70px; }
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%       { transform: translateX(-6px); }
+      40%       { transform: translateX(6px); }
+      60%       { transform: translateX(-4px); }
+      80%       { transform: translateX(4px); }
+    }
+
+    /* ===== タスク追加フォーム ===== */
+    .add-task-form {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    .add-task-form h2 {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .form-row {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .form-row input[type="text"],
+    .form-row input[type="datetime-local"] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      color: var(--text);
+      background: var(--bg);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .form-row input:focus {
+      border-color: var(--primary);
+      background: #fff;
+    }
+
+    .form-row input.shake {
+      animation: shake 0.35s ease;
+      border-color: var(--danger);
+    }
+
+    .btn-add {
+      width: 100%;
+      padding: 11px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      font-family: inherit;
+    }
+
+    .btn-add:hover { background: var(--primary-dk); }
+    .btn-add:active { transform: scale(0.97); }
+
+    /* ===== タスクリスト ===== */
+    #task-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .task-empty {
+      text-align: center;
+      color: var(--muted);
+      padding: 32px 16px;
+      font-size: 0.95rem;
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .task-card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 14px 16px;
+      border-left: 5px solid #e2e8f0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      transition: opacity 0.3s;
+    }
+
+    .task-card.task-overdue  { border-left-color: var(--danger); background: #fff8f8; }
+    .task-card.task-soon     { border-left-color: var(--warn); background: #fffdf0; }
+    .task-card.task-pending  { border-left-color: #94a3b8; }
+    .task-card.task-completed {
+      border-left-color: var(--primary);
+      background: #f0fff4;
+      opacity: 0.65;
+    }
+
+    .task-main {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .task-title {
+      font-weight: 700;
+      font-size: 1rem;
+      line-height: 1.4;
+      flex: 1;
+    }
+
+    .task-card.task-completed .task-title {
+      text-decoration: line-through;
+      color: var(--muted);
+    }
+
+    .deadline-badge {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 99px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .badge-overdue  { background: #fee2e2; color: #dc2626; }
+    .badge-soon     { background: #fef3c7; color: #d97706; }
+    .badge-pending  { background: #e2e8f0; color: #475569; }
+    .badge-completed { background: #d1fae5; color: #059669; }
+
+    .task-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-complete, .btn-delete {
+      flex: 1;
+      padding: 7px 0;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+
+    .btn-complete:active, .btn-delete:active { transform: scale(0.96); }
+
+    .btn-complete {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn-complete:disabled {
+      background: #a0aec0;
+      cursor: not-allowed;
+    }
+
+    .btn-delete {
+      background: #fee2e2;
+      color: #dc2626;
+      max-width: 70px;
+    }
+
+    .btn-delete:hover { background: #fecaca; }
+
+    /* ===== リセットボタン ===== */
+    .reset-btn {
+      display: block;
+      width: 100%;
+      margin-top: 24px;
+      padding: 10px;
+      background: transparent;
+      color: var(--muted);
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      font-family: inherit;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .reset-btn:hover { color: var(--danger); border-color: var(--danger); }
+  </style>
+</head>
+<body>
+<div class="app-container">
+  <h1>TODOチャラ ✅</h1>
+
+  <!-- キャラクター選択画面 -->
+  <div id="selection-screen">
+    <p>一緒にタスクを管理する相棒を選んでね！<br>期限を守らないと悲しんじゃうよ…</p>
+    <div class="select-container">
+      <div class="char-choice" onclick="selectCharacter('dragon')">
+        <img src="https://raw.githubusercontent.com/rukonomo27/chariiku/main/images/doragon/5.png" alt="ドラゴン">
+        <div class="char-name">ドラゴン</div>
+      </div>
+      <div class="char-choice" onclick="selectCharacter('cat')">
+        <img src="https://raw.githubusercontent.com/rukonomo27/chariiku/main/images/cat/5.png" alt="ねこ">
+        <div class="char-name">ねこ</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- メイン画面 -->
+  <div id="main-screen" style="display:none">
+
+    <!-- キャラクターエリア -->
+    <div class="character-area mood-happy" id="char-area">
+      <img id="char-img" class="char-happy"
+        src="https://raw.githubusercontent.com/rukonomo27/chariiku/main/images/egg.png"
+        alt="キャラクター">
+      <div class="mood-message" id="mood-msg">タスクを確認中...</div>
+    </div>
+
+    <!-- タスク追加フォーム -->
+    <div class="add-task-form">
+      <h2>タスクを追加</h2>
+      <div class="form-row">
+        <input type="text" id="task-title" placeholder="タスクのタイトル" maxlength="60">
+        <input type="datetime-local" id="task-deadline">
+        <button class="btn-add" onclick="addTask()">追加 ＋</button>
+      </div>
+    </div>
+
+    <!-- タスクリスト -->
+    <div id="task-list"></div>
+
+    <button class="reset-btn" onclick="resetData()">キャラを選び直す（データ全削除）</button>
+  </div>
+</div>
+
+<script>
+  const STORAGE_KEY = 'todo_chara_state_v1';
+  const IMG_BASE = 'https://raw.githubusercontent.com/rukonomo27/chariiku/main/images';
+  const CHAR_IMGS = {
+    dragon: IMG_BASE + '/doragon/5.png',
+    cat:    IMG_BASE + '/cat/5.png'
+  };
+  const MOOD_MESSAGES = {
+    happy:  'タスクは完璧！元気いっぱいだよ ✨',
+    normal: 'もうすぐ締め切りが来るよ、急いで！ ⏰',
+    sad:    '期限切れのタスクがあって悲しいな... 😢',
+    crying: 'タスクがたくさん溢れてるよ！助けて！ 😭'
+  };
+
+  // --- DATA ---
+
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : { characterType: null, tasks: [] };
+    } catch {
+      return { characterType: null, tasks: [] };
+    }
+  }
+
+  function saveState(state) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+
+  function generateId() {
+    if (crypto && crypto.randomUUID) return crypto.randomUUID();
+    return Date.now().toString(36) + Math.random().toString(36).slice(2);
+  }
+
+  // --- TASK OPERATIONS ---
+
+  function addTask() {
+    const titleEl    = document.getElementById('task-title');
+    const deadlineEl = document.getElementById('task-deadline');
+    const title    = titleEl.value.trim();
+    const deadline = deadlineEl.value;
+
+    let valid = true;
+    if (!title) { shake(titleEl); valid = false; }
+    if (!deadline) { shake(deadlineEl); valid = false; }
+    if (!valid) return;
+
+    const deadlineMs = new Date(deadline).getTime();
+    if (deadlineMs < Date.now()) {
+      if (!confirm('この締め切りはすでに過去の日時です。本当に追加しますか？')) return;
+    }
+
+    const state = loadState();
+    state.tasks.push({
+      id: generateId(),
+      title,
+      deadline: deadlineMs,
+      completed: false,
+      completedAt: null,
+      createdAt: Date.now()
+    });
+    saveState(state);
+
+    titleEl.value = '';
+    deadlineEl.value = getDefaultDeadline();
+    updateUI();
+  }
+
+  function completeTask(id) {
+    const state = loadState();
+    const task = state.tasks.find(t => t.id === id);
+    if (task && !task.completed) {
+      task.completed = true;
+      task.completedAt = Date.now();
+      saveState(state);
+      updateUI();
+    }
+  }
+
+  function deleteTask(id) {
+    const state = loadState();
+    state.tasks = state.tasks.filter(t => t.id !== id);
+    saveState(state);
+    updateUI();
+  }
+
+  function sortTasks(tasks) {
+    const now = Date.now();
+    return [...tasks].sort((a, b) => {
+      const aOverdue = !a.completed && a.deadline < now;
+      const bOverdue = !b.completed && b.deadline < now;
+      if (aOverdue && !bOverdue) return -1;
+      if (!aOverdue && bOverdue) return  1;
+      if (a.completed && !b.completed) return  1;
+      if (!a.completed && b.completed) return -1;
+      if (a.completed && b.completed) return b.completedAt - a.completedAt;
+      return a.deadline - b.deadline;
+    });
+  }
+
+  function calcMood(tasks) {
+    const now = Date.now();
+    const overdueCount = tasks.filter(t => !t.completed && t.deadline < now).length;
+    const soonCount    = tasks.filter(t => !t.completed && t.deadline >= now && t.deadline - now < 86400000).length;
+    if (overdueCount >= 3) return 'crying';
+    if (overdueCount >= 1) return 'sad';
+    if (soonCount   >= 1) return 'normal';
+    return 'happy';
+  }
+
+  function getTaskState(task) {
+    if (task.completed) return 'completed';
+    const now = Date.now();
+    if (task.deadline < now) return 'overdue';
+    if (task.deadline - now < 86400000) return 'soon';
+    return 'pending';
+  }
+
+  // --- DISPLAY ---
+
+  function formatCountdown(deadlineMs) {
+    const now  = Date.now();
+    const diff = deadlineMs - now;
+    if (diff < 0) {
+      const abs = Math.abs(diff);
+      const d = Math.floor(abs / 86400000);
+      const h = Math.floor(abs / 3600000);
+      const m = Math.floor(abs / 60000);
+      if (d >= 1) return d + '日超過';
+      if (h >= 1) return h + '時間超過';
+      return m + '分超過';
+    }
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    if (d >= 2)  return d + '日後';
+    if (d === 1) return '明日まで';
+    if (h >= 1)  return h + '時間後';
+    return m + '分後';
+  }
+
+  function renderCharacter(mood) {
+    const area    = document.getElementById('char-area');
+    const img     = document.getElementById('char-img');
+    const msgEl   = document.getElementById('mood-msg');
+
+    area.className = 'character-area mood-' + mood;
+    img.className  = 'char-' + mood;
+    msgEl.textContent = MOOD_MESSAGES[mood];
+  }
+
+  function renderTaskList(tasks) {
+    const listEl = document.getElementById('task-list');
+    if (tasks.length === 0) {
+      listEl.innerHTML = '<div class="task-empty">タスクはまだありません。<br>新しいタスクを追加してね！</div>';
+      return;
+    }
+    const sorted = sortTasks(tasks);
+    listEl.innerHTML = sorted.map(task => {
+      const state = getTaskState(task);
+      const badgeClass = 'badge-' + state;
+      const countdown = state === 'completed'
+        ? '完了済み'
+        : formatCountdown(task.deadline);
+      const disabledAttr = task.completed ? 'disabled' : '';
+      return `
+        <div class="task-card task-${state}">
+          <div class="task-main">
+            <span class="task-title">${escapeHtml(task.title)}</span>
+            <span class="deadline-badge ${badgeClass}">${countdown}</span>
+          </div>
+          <div class="task-actions">
+            <button class="btn-complete" onclick="completeTask('${task.id}')" ${disabledAttr}>
+              ${task.completed ? '✓ 完了済み' : '完了にする'}
+            </button>
+            <button class="btn-delete" onclick="deleteTask('${task.id}')">削除</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function updateUI() {
+    const state = loadState();
+    if (!state.characterType) {
+      document.getElementById('selection-screen').style.display = '';
+      document.getElementById('main-screen').style.display = 'none';
+      return;
+    }
+    document.getElementById('selection-screen').style.display = 'none';
+    document.getElementById('main-screen').style.display = '';
+
+    const img = document.getElementById('char-img');
+    img.src = CHAR_IMGS[state.characterType];
+
+    const mood = calcMood(state.tasks);
+    renderCharacter(mood);
+    renderTaskList(state.tasks);
+  }
+
+  // --- CHARACTER SETUP ---
+
+  function selectCharacter(type) {
+    const state = loadState();
+    state.characterType = type;
+    saveState(state);
+    updateUI();
+  }
+
+  function resetData() {
+    if (!confirm('キャラクターとタスクのデータをすべて削除します。よろしいですか？')) return;
+    localStorage.removeItem(STORAGE_KEY);
+    updateUI();
+  }
+
+  // --- HELPERS ---
+
+  function shake(el) {
+    el.classList.remove('shake');
+    void el.offsetWidth;
+    el.classList.add('shake');
+    el.addEventListener('animationend', () => el.classList.remove('shake'), { once: true });
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+              .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
+  function getDefaultDeadline() {
+    const d = new Date(Date.now() + 86400000);
+    return d.toISOString().slice(0, 16);
+  }
+
+  // --- INIT ---
+  document.getElementById('task-deadline').value = getDefaultDeadline();
+  setInterval(updateUI, 60000);
+  updateUI();
+</script>
+</body>
+</html>
